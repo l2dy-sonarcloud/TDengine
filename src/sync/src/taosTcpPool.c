@@ -252,7 +252,7 @@ static void *taosAcceptPeerTcpConnection(void *argv) {
 
     //uDebug("TCP connection from: 0x%x:%d", clientAddr.sin_addr.s_addr, clientAddr.sin_port); 
     taosKeepTcpAlive(connFd);
-    (*pInfo->processIncomingConn)(connFd, clientAddr.sin_addr.s_addr);
+    (*pInfo->processIncomingConn)(pPool, connFd, clientAddr.sin_addr.s_addr);
   }
 
   taosClose(pPool->acceptFd);

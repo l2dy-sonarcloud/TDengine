@@ -28,7 +28,7 @@
 #include "syncInt.h"
 
 static void arbSignalHandler(int32_t signum, siginfo_t *sigInfo, void *context);
-static void arbProcessIncommingConnection(int connFd, uint32_t sourceIp);
+static void arbProcessIncommingConnection(ttpool_h pool, int connFd, uint32_t sourceIp);
 static void arbProcessBrokenLink(void *param);
 static int  arbProcessPeerMsg(void *param, void *buffer);
 static tsem_t   tsArbSem;
@@ -66,6 +66,10 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  tsAsyncLog = 0;
+  strcat(arbLogPath, "/arbitrator.log");
+  taosInitLog(arbLogPath, 1000000, 10);
+
   /* Set termination handler. */
   struct sigaction act = {{0}};
   act.sa_flags = SA_SIGINFO;
@@ -73,10 +77,6 @@ int main(int argc, char *argv[]) {
   sigaction(SIGTERM, &act, NULL);
   sigaction(SIGHUP, &act, NULL);
   sigaction(SIGINT, &act, NULL);
-
-  tsAsyncLog = 0;
-  strcat(arbLogPath, "/arbitrator.log");
-  taosInitLog(arbLogPath, 1000000, 10);
 
   taosGetFqdn(tsNodeFqdn);
   tsSyncPort = tsServerPort + TSDB_PORT_SYNC;
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-static void arbProcessIncommingConnection(int connFd, uint32_t sourceIp)
+static void arbProcessIncommingConnection(ttpool_h pool, int connFd, uint32_t sourceIp)
 {
   char  ipstr[24];
   tinet_ntoa(ipstr, sourceIp);
@@ -139,7 +139,7 @@ static void arbProcessIncommingConnection(int connFd, uint32_t sourceIp)
 
   sDebug("%s, arbitrator request is accepted", pNode->id);
   pNode->nodeFd = connFd;
-  pNode->pConn = taosAllocateTcpConn(tsArbTcpPool, pNode, connFd);
+  pNode->pConn = taosAllocateTcpConn(pool, pNode, connFd);
 
   return;
 }

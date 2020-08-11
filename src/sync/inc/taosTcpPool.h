@@ -30,7 +30,7 @@ typedef struct {
   int       bufferSize;
   void     (*processBrokenLink)(void *ahandle);
   int      (*processIncomingMsg)(void *ahandle, void *buffer);
-  void     (*processIncomingConn)(int fd, uint32_t ip);
+  void     (*processIncomingConn)(ttpool_h pool, int fd, uint32_t ip);
 } SPoolInfo;
 
 ttpool_h   taosOpenTcpThreadPool(SPoolInfo *pInfo);
